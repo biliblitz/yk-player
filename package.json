@@ -1,0 +1,33 @@
+{
+  "name": "yk-player",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "module": "./dist/yk-player.js",
+  "types": "./dist/yk-player.d.ts",
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/yk-player.d.ts",
+      "import": "./dist/yk-player.js"
+    }
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview"
+  },
+  "peerDependencies": {
+    "hls.js": "^1.6.16",
+    "lit": "^3.3.3"
+  },
+  "devDependencies": {
+    "hls.js": "^1.6.16",
+    "lit": "^3.3.3",
+    "typescript": "~6.0.2",
+    "vite": "^8.1.1",
+    "vite-plugin-dts": "^5.0.3"
+  }
+}

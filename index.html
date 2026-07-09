@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>yk-player</title>
+    <link rel="stylesheet" href="./src/index.css" />
+    <script type="module" src="/src/demo.ts"></script>
+  </head>
+  <body>
+    <div class="demo-wrap">
+      <yk-player class="demo" src="/pv1.m3u8" autoplay></yk-player>
+      <div class="switcher">
+        <button data-src="/pv1.m3u8" class="active">PV1</button>
+        <button data-src="/pv2/index.m3u8">PV2</button>
+      </div>
+      <div class="switcher">
+        <button data-lang="en" class="active">EN</button>
+        <button data-lang="ja">日本語</button>
+        <button data-lang="zh">中文</button>
+      </div>
+    </div>
+  </body>
+</html>
