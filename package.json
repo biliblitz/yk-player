@@ -1,7 +1,6 @@
 {
-  "name": "yk-player",
-  "private": true,
-  "version": "0.0.0",
+  "name": "@biliblitz/yk-player",
+  "version": "0.1.0",
   "type": "module",
   "module": "./dist/yk-player.js",
   "types": "./dist/yk-player.d.ts",
