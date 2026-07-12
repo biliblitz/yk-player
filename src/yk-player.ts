@@ -472,8 +472,6 @@ export class YkPlayer extends LitElement {
       },
       { signal },
     );
-
-    this.loadSource();
   }
 
   private toggleSubtitle() {
@@ -550,8 +548,11 @@ export class YkPlayer extends LitElement {
   }
 
   updated(changed: Map<string, unknown>) {
-    if (changed.has("src") && this.hasUpdated) {
-      this.loadSource();
+    if (changed.has("src")) {
+      // deferred so loadSource()'s state resets land after this update cycle
+      // settles, instead of re-arming it and scheduling another one synchronously
+      // (see https://lit.dev/msg/change-in-update)
+      queueMicrotask(() => this.loadSource());
     }
     if (changed.has("fullscreen") || changed.has("active")) {
       this.classList.toggle("hide-cursor", this.fullscreen && !this.active);
