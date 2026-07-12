@@ -4,6 +4,8 @@ A modern m3u8 (HLS) player built with Web Components — usable in every project
 
 Built on [Lit](https://lit.dev/) and [hls.js](https://github.com/video-dev/hls.js).
 
+![yk-player showcase](./docs/showcase.png)
+
 ## Features
 
 - 🎛️ Full controller out of the box — play/pause, seek, volume, speed, fullscreen, auto-hiding controls
