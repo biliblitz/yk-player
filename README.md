@@ -54,13 +54,13 @@ yk-player {
 
 All attributes are reactive — updating `src` switches the source in place (playback state is preserved), and updating `lang` re-renders the UI in the new language.
 
-### Events
+### Acts like a `<video>` element
 
-| Event   | Description                        |
-| ------- | ---------------------------------- |
-| `ended` | Fired when playback reaches the end (bubbles, composed) |
+`<yk-player>` mirrors the `HTMLMediaElement` API, so you can treat it as a drop-in `<video>`:
 
-### Usage from JavaScript
+- **Methods**: `play()` (returns a promise, like native) and `pause()`
+- **Properties**: `currentTime`, `duration`, `paused`, `ended`, `volume`, `muted`, `playbackRate`
+- **Events**: all standard playback events are re-dispatched on the element — `play`, `pause`, `playing`, `waiting`, `seeking`, `seeked`, `timeupdate`, `durationchange`, `volumechange`, `ratechange`, `ended`, `error`, `loadedmetadata`, `canplay`, and the rest. Fatal hls.js failures fire `error` too, matching what native playback would do.
 
 ```ts
 import type { YkPlayer } from "@biliblitz/yk-player";
@@ -68,6 +68,10 @@ import type { YkPlayer } from "@biliblitz/yk-player";
 const player = document.querySelector<YkPlayer>("yk-player")!;
 player.src = "/another/index.m3u8";
 player.lang = "ja";
+
+player.currentTime = 42;
+player.volume = 0.5;
+player.addEventListener("timeupdate", () => console.log(player.currentTime));
 player.addEventListener("ended", () => console.log("done"));
 ```
 

@@ -26,6 +26,32 @@ const VOLUME_DOWN_PATH =
 const VOLUME_OFF_PATH =
   "M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.8L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z";
 const SPEEDS = [0.5, 0.75, 1, 1.25, 1.5, 2];
+// standard HTMLMediaElement events re-dispatched on the host so <yk-player>
+// can be listened to like a plain <video>
+const MEDIA_EVENTS = [
+  "abort",
+  "canplay",
+  "canplaythrough",
+  "durationchange",
+  "emptied",
+  "ended",
+  "error",
+  "loadeddata",
+  "loadedmetadata",
+  "loadstart",
+  "pause",
+  "play",
+  "playing",
+  "progress",
+  "ratechange",
+  "seeked",
+  "seeking",
+  "stalled",
+  "suspend",
+  "timeupdate",
+  "volumechange",
+  "waiting",
+] as const;
 const CHEVRON_LEFT_PATH = "M15.41 7.41 14 6l-6 6 6 6 1.41-1.41L10.83 12z";
 const CHEVRON_RIGHT_PATH = "M10 6 8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z";
 const FULLSCREEN_EXIT_PATH =
@@ -54,10 +80,10 @@ export class YkPlayer extends LitElement {
   private playing = false;
 
   @state()
-  private currentTime = 0;
+  private _currentTime = 0;
 
   @state()
-  private duration = Infinity;
+  private _duration = Infinity;
 
   @state()
   private fullscreen = false;
@@ -84,10 +110,10 @@ export class YkPlayer extends LitElement {
   private activeLevel = -1;
 
   @state()
-  private volume = 1;
+  private _volume = 1;
 
   @state()
-  private muted = false;
+  private _muted = false;
 
   @state()
   private showRemaining = false;
@@ -99,7 +125,7 @@ export class YkPlayer extends LitElement {
   private settingsPanel: "root" | "speed" | "quality" | "subtitle" = "root";
 
   @state()
-  private playbackRate = 1;
+  private _playbackRate = 1;
 
   @state()
   private error: string | null = null;
@@ -119,6 +145,69 @@ export class YkPlayer extends LitElement {
   private lastSubtitleId = -1;
   private suppressNextPlayPing = false;
   private actionMessageTimer: ReturnType<typeof setTimeout> | null = null;
+
+  // HTMLMediaElement-like API — before the first render the inner <video>
+  // doesn't exist yet, so reads fall back to the internal state and writes
+  // are staged there, then applied to the <video> in firstUpdated()
+
+  get currentTime(): number {
+    return this.hasUpdated ? this.videoEl.currentTime : this._currentTime;
+  }
+
+  set currentTime(value: number) {
+    if (this.hasUpdated) this.videoEl.currentTime = value;
+    else this._currentTime = value;
+  }
+
+  get duration(): number {
+    return this.hasUpdated ? this.videoEl.duration : this._duration;
+  }
+
+  get paused(): boolean {
+    return this.hasUpdated ? this.videoEl.paused : true;
+  }
+
+  get ended(): boolean {
+    return this.hasUpdated ? this.videoEl.ended : false;
+  }
+
+  get volume(): number {
+    return this.hasUpdated ? this.videoEl.volume : this._volume;
+  }
+
+  set volume(value: number) {
+    if (this.hasUpdated) this.videoEl.volume = value;
+    else this._volume = value;
+  }
+
+  get muted(): boolean {
+    return this.hasUpdated ? this.videoEl.muted : this._muted;
+  }
+
+  set muted(value: boolean) {
+    if (this.hasUpdated) this.videoEl.muted = value;
+    else this._muted = value;
+  }
+
+  get playbackRate(): number {
+    return this.hasUpdated ? this.videoEl.playbackRate : this._playbackRate;
+  }
+
+  set playbackRate(value: number) {
+    if (this.hasUpdated) this.videoEl.playbackRate = value;
+    else this._playbackRate = value;
+  }
+
+  play(): Promise<void> {
+    if (!this.hasUpdated) {
+      return this.updateComplete.then(() => this.videoEl.play());
+    }
+    return this.videoEl.play();
+  }
+
+  pause() {
+    if (this.hasUpdated) this.videoEl.pause();
+  }
 
   private t(key: keyof YkPlayerStrings) {
     return translate(this.lang, key);
@@ -171,7 +260,7 @@ export class YkPlayer extends LitElement {
           <div class="track">
             <div
               class="progress"
-              style="width: ${percent(this.currentTime, this.duration)}%"
+              style="width: ${percent(this._currentTime, this._duration)}%"
             ></div>
           </div>
         </div>
@@ -192,8 +281,8 @@ export class YkPlayer extends LitElement {
                 min="0"
                 max="1"
                 step="0.01"
-                style="--volume: ${percent(this.muted ? 0 : this.volume, 1)}%"
-                .value=${String(this.muted ? 0 : this.volume)}
+                style="--volume: ${percent(this._muted ? 0 : this._volume, 1)}%"
+                .value=${String(this._muted ? 0 : this._volume)}
                 @input=${this.onVolumeInput}
               />
             </div>
@@ -201,9 +290,9 @@ export class YkPlayer extends LitElement {
           <div class="group">
             <span class="time group-wrapper" @click=${this.toggleTimeMode}>
               ${this.showRemaining
-                ? `-${formatDuration(this.duration - this.currentTime)}`
-                : formatDuration(this.currentTime)}
-              / ${formatDuration(this.duration)}
+                ? `-${formatDuration(this._duration - this._currentTime)}`
+                : formatDuration(this._currentTime)}
+              / ${formatDuration(this._duration)}
             </span>
           </div>
           <span class="spacer"></span>
@@ -250,7 +339,7 @@ export class YkPlayer extends LitElement {
                             >
                               <span>${this.t("speed")}</span>
                               <span class="hint">
-                                ${this.playbackRate}x
+                                ${this._playbackRate}x
                                 ${this.icon(CHEVRON_RIGHT_PATH, "chevron")}
                               </span>
                             </div>
@@ -283,7 +372,7 @@ export class YkPlayer extends LitElement {
                             ${SPEEDS.map(
                               (rate) => html`
                                 <div
-                                  class="menu-item ${this.playbackRate === rate
+                                  class="menu-item ${this._playbackRate === rate
                                     ? "selected"
                                     : ""}"
                                   @click=${() => this.selectSpeed(rate)}
@@ -387,6 +476,20 @@ export class YkPlayer extends LitElement {
     const { signal } = this.ctrl;
     this.suppressNextPlayPing = this.autoplay;
 
+    // apply property values staged before the <video> existed
+    this.videoEl.volume = this._volume;
+    this.videoEl.muted = this._muted;
+    this.videoEl.playbackRate = this._playbackRate;
+    if (this._currentTime > 0) this.videoEl.currentTime = this._currentTime;
+
+    for (const type of MEDIA_EVENTS) {
+      this.videoEl.addEventListener(
+        type,
+        () => this.dispatchEvent(new Event(type)),
+        { signal },
+      );
+    }
+
     this.videoEl.addEventListener(
       "play",
       () => {
@@ -408,26 +511,26 @@ export class YkPlayer extends LitElement {
       { signal },
     );
     this.videoEl.addEventListener(
-      "ended",
-      () => this.dispatchEvent(new Event("ended", { bubbles: true, composed: true })),
-      { signal },
-    );
-    this.videoEl.addEventListener(
       "timeupdate",
-      () => (this.currentTime = this.videoEl.currentTime),
+      () => (this._currentTime = this.videoEl.currentTime),
       { signal },
     );
     this.videoEl.addEventListener(
       "durationchange",
-      () => (this.duration = this.videoEl.duration),
+      () => (this._duration = this.videoEl.duration),
       { signal },
     );
     this.videoEl.addEventListener(
       "volumechange",
       () => {
-        this.volume = this.videoEl.volume;
-        this.muted = this.videoEl.muted;
+        this._volume = this.videoEl.volume;
+        this._muted = this.videoEl.muted;
       },
+      { signal },
+    );
+    this.videoEl.addEventListener(
+      "ratechange",
+      () => (this._playbackRate = this.videoEl.playbackRate),
       { signal },
     );
     this.videoEl.addEventListener(
@@ -516,8 +619,8 @@ export class YkPlayer extends LitElement {
   }
 
   private selectSpeed(rate: number) {
+    // _playbackRate is synced by the ratechange listener
     this.videoEl.playbackRate = rate;
-    this.playbackRate = rate;
     this.settingsMenuOpen = false;
   }
 
@@ -542,8 +645,8 @@ export class YkPlayer extends LitElement {
   }
 
   private volumeIconPath() {
-    if (this.muted || this.volume === 0) return VOLUME_OFF_PATH;
-    if (this.volume < 0.5) return VOLUME_DOWN_PATH;
+    if (this._muted || this._volume === 0) return VOLUME_OFF_PATH;
+    if (this._volume < 0.5) return VOLUME_DOWN_PATH;
     return VOLUME_UP_PATH;
   }
 
@@ -593,24 +696,24 @@ export class YkPlayer extends LitElement {
   }
 
   private seek(e: MouseEvent) {
-    if (!isFinite(this.duration)) return;
+    if (!isFinite(this._duration)) return;
     const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
     const ratio = Math.max(
       0,
       Math.min(1, (e.clientX - rect.left) / rect.width),
     );
-    this.videoEl.currentTime = ratio * this.duration;
+    this.videoEl.currentTime = ratio * this._duration;
   }
 
   private onSeekbarHover(e: MouseEvent) {
-    if (!isFinite(this.duration)) return;
+    if (!isFinite(this._duration)) return;
     const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
     const ratio = Math.max(
       0,
       Math.min(1, (e.clientX - rect.left) / rect.width),
     );
     this.clearActionTimer();
-    this.actionMessage = formatDuration(ratio * this.duration);
+    this.actionMessage = formatDuration(ratio * this._duration);
     this.actionMessageVisible = true;
   }
 
@@ -657,7 +760,12 @@ export class YkPlayer extends LitElement {
           this.activeLevel = data.level;
         });
         this.hls.on(Hls.Events.ERROR, (_event, data) => {
-          if (data.fatal) this.error = this.t("loadError");
+          if (data.fatal) {
+            this.error = this.t("loadError");
+            // the inner <video> only fires "error" on the native HLS path,
+            // so surface fatal hls.js failures the same way
+            this.dispatchEvent(new Event("error"));
+          }
         });
         this.hls.on(Hls.Events.MANIFEST_PARSED, () => (this.error = null));
       }
