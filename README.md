@@ -54,6 +54,22 @@ yk-player {
 
 All attributes are reactive — updating `src` switches the source in place (playback state is preserved), and updating `lang` re-renders the UI in the new language.
 
+### Keyboard shortcuts
+
+Click the player once to focus it, then:
+
+| Key | Action |
+| --- | ------ |
+| `Space` / `k` | Play / pause |
+| `f` (or double-click) | Toggle fullscreen |
+| `m` | Toggle mute |
+| `c` | Toggle subtitles |
+| `←` / `→` | Seek −5s / +5s |
+| `j` / `l` | Seek −10s / +10s |
+| `↑` / `↓` | Volume up / down |
+| `0`–`9` | Jump to 0%–90% |
+| `Esc` | Close the settings menu |
+
 ### Acts like a `<video>` element
 
 `<yk-player>` mirrors the `HTMLMediaElement` API, so you can treat it as a drop-in `<video>`:

@@ -223,7 +223,11 @@ export class YkPlayer extends LitElement {
     return html`
       <video ?autoplay=${this.autoplay} playsinline></video>
 
-      <div class="background" @click=${this.togglePlay}></div>
+      <div
+        class="background"
+        @click=${this.onBackgroundClick}
+        @dblclick=${this.toggleFullscreen}
+      ></div>
 
       ${this.error
         ? html`<div class="error">${this.error}</div>`
@@ -472,6 +476,12 @@ export class YkPlayer extends LitElement {
     `;
   }
 
+  connectedCallback() {
+    super.connectedCallback();
+    // focusable so the player receives keyboard shortcuts after being clicked
+    if (!this.hasAttribute("tabindex")) this.tabIndex = 0;
+  }
+
   firstUpdated() {
     const { signal } = this.ctrl;
     this.suppressNextPlayPing = this.autoplay;
@@ -552,6 +562,7 @@ export class YkPlayer extends LitElement {
       { signal },
     );
 
+    this.addEventListener("keydown", (e) => this.onKeydown(e), { signal });
     this.addEventListener("mousemove", () => this.onMousemove(), { signal });
     this.addEventListener("mouseenter", () => (this.inside = true), { signal });
     this.addEventListener(
@@ -688,6 +699,92 @@ export class YkPlayer extends LitElement {
   private togglePlay() {
     if (this.videoEl.paused) this.videoEl.play();
     else this.videoEl.pause();
+  }
+
+  private onKeydown(e: KeyboardEvent) {
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+
+    // buttons keep native Space activation; everything else (including the
+    // focused volume slider) goes through the player-wide shortcuts
+    const onButton = e.composedPath()[0] instanceof HTMLButtonElement;
+
+    switch (e.key) {
+      case " ":
+        if (onButton) return;
+        this.togglePlay();
+        break;
+      case "k":
+        this.togglePlay();
+        break;
+      case "f":
+        this.toggleFullscreen();
+        break;
+      case "m":
+        this.toggleMute();
+        break;
+      case "c":
+        this.toggleSubtitle();
+        break;
+      case "ArrowLeft":
+        this.seekBy(-5);
+        break;
+      case "ArrowRight":
+        this.seekBy(5);
+        break;
+      case "j":
+        this.seekBy(-10);
+        break;
+      case "l":
+        this.seekBy(10);
+        break;
+      case "ArrowUp":
+        this.changeVolume(0.1);
+        break;
+      case "ArrowDown":
+        this.changeVolume(-0.1);
+        break;
+      case "Escape":
+        if (!this.settingsMenuOpen) return;
+        this.settingsMenuOpen = false;
+        this.settingsPanel = "root";
+        break;
+      default:
+        if (e.key >= "0" && e.key <= "9" && isFinite(this._duration)) {
+          this.videoEl.currentTime = (Number(e.key) / 10) * this._duration;
+          break;
+        }
+        return;
+    }
+    e.preventDefault();
+  }
+
+  private seekBy(delta: number) {
+    if (!isFinite(this._duration)) return;
+    const time = Math.max(
+      0,
+      Math.min(this._duration, this.videoEl.currentTime + delta),
+    );
+    this.videoEl.currentTime = time;
+    this.showAction(formatDuration(time));
+  }
+
+  private changeVolume(delta: number) {
+    const volume = Math.max(0, Math.min(1, this.videoEl.volume + delta));
+    this.videoEl.volume = volume;
+    this.videoEl.muted = volume === 0;
+    this.showAction(
+      volume === 0 ? this.t("muted") : `${Math.round(volume * 100)}%`,
+    );
+  }
+
+  private onBackgroundClick() {
+    // clicking the video surface while the menu is open only dismisses it
+    if (this.settingsMenuOpen) {
+      this.settingsMenuOpen = false;
+      this.settingsPanel = "root";
+      return;
+    }
+    this.togglePlay();
   }
 
   private toggleFullscreen() {
