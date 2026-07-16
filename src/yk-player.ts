@@ -219,6 +219,23 @@ export class YkPlayer extends LitElement {
     </svg>`;
   }
 
+  // Buttons are mouse-activated without keeping keyboard focus, so a
+  // Space press right after clicking (e.g. fullscreen) toggles playback
+  // instead of re-activating the last-clicked button.
+  private preventFocus(e: MouseEvent) {
+    e.preventDefault();
+  }
+
+  private levelsByQuality() {
+    return this.levels
+      .map((level, index) => ({ level, index }))
+      .sort(
+        (a, b) =>
+          (b.level.height ?? b.level.bitrate ?? 0) -
+          (a.level.height ?? a.level.bitrate ?? 0),
+      );
+  }
+
   render() {
     return html`
       <video ?autoplay=${this.autoplay} playsinline></video>
@@ -270,13 +287,17 @@ export class YkPlayer extends LitElement {
         </div>
         <div class="row">
           <div class="group">
-            <button class="group-wrapper" @click=${this.togglePlay}>
+            <button
+              class="group-wrapper"
+              @mousedown=${this.preventFocus}
+              @click=${this.togglePlay}
+            >
               ${this.icon(this.playing ? PAUSE_PATH : PLAY_PATH)}
             </button>
           </div>
           <div class="group">
             <div class="volume-wrap group-wrapper">
-              <button @click=${this.toggleMute}>
+              <button @mousedown=${this.preventFocus} @click=${this.toggleMute}>
                 ${this.icon(this.volumeIconPath())}
               </button>
               <input
@@ -305,6 +326,7 @@ export class YkPlayer extends LitElement {
               class="group-wrapper ${this.subtitleTracks.length === 0
                 ? "dim"
                 : ""}"
+              @mousedown=${this.preventFocus}
               @click=${this.toggleSubtitle}
             >
               ${this.icon(
@@ -412,15 +434,16 @@ export class YkPlayer extends LitElement {
                                   >`
                                 : ""}
                             </div>
-                            ${this.levels.map(
-                              (l, i) => html`
+                            ${this.levelsByQuality().map(
+                              ({ level, index }) => html`
                                 <div
-                                  class="menu-item ${this.currentLevel === i
+                                  class="menu-item ${this.currentLevel ===
+                                  index
                                     ? "selected"
                                     : ""}"
-                                  @click=${() => this.selectQuality(i)}
+                                  @click=${() => this.selectQuality(index)}
                                 >
-                                  ${qualityLabel(l, this.t("auto"))}
+                                  ${qualityLabel(level, this.t("auto"))}
                                 </div>
                               `,
                             )}
@@ -461,11 +484,19 @@ export class YkPlayer extends LitElement {
                     </div>
                   `
                 : ""}
-              <button class="group-wrapper" @click=${this.toggleSettingsMenu}>
+              <button
+                class="group-wrapper"
+                @mousedown=${this.preventFocus}
+                @click=${this.toggleSettingsMenu}
+              >
                 ${this.icon(QUALITY_PATH)}
               </button>
             </div>
-            <button class="group-wrapper" @click=${this.toggleFullscreen}>
+            <button
+              class="group-wrapper"
+              @mousedown=${this.preventFocus}
+              @click=${this.toggleFullscreen}
+            >
               ${this.icon(
                 this.fullscreen ? FULLSCREEN_EXIT_PATH : FULLSCREEN_ENTER_PATH,
               )}
