@@ -229,11 +229,7 @@ export class YkPlayer extends LitElement {
   private levelsByQuality() {
     return this.levels
       .map((level, index) => ({ level, index }))
-      .sort(
-        (a, b) =>
-          (b.level.height ?? b.level.bitrate ?? 0) -
-          (a.level.height ?? a.level.bitrate ?? 0),
-      );
+      .sort((a, b) => b.level.bitrate - a.level.bitrate);
   }
 
   render() {
