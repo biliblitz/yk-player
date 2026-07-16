@@ -20,6 +20,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
+    "build:pages": "vite build --config vite.demo.config.ts",
     "preview": "vite preview"
   },
   "peerDependencies": {
