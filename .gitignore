@@ -22,7 +22,3 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
-
-# Demo video assets (kept locally, not tracked)
-public/*
-!public/favicon.svg

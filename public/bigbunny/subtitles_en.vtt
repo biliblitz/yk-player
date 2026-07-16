@@ -1,0 +1,11 @@
+WEBVTT
+X-TIMESTAMP-MAP=MPEGTS:0,LOCAL:00:00:00.000
+
+00:00:01.000 --> 00:00:04.000
+This is a sample subtitle track.
+
+00:00:06.000 --> 00:00:09.000
+Delivered as a WebVTT rendition inside the HLS manifest.
+
+00:00:12.000 --> 00:00:16.000
+hls.js parses it and exposes it via subtitleTracks.

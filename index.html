@@ -4,22 +4,149 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>yk-player</title>
+    <meta
+      name="description"
+      content="yk-player — a modern HLS (m3u8) video player built as a Web Component with Lit and hls.js. Live demo, keyboard shortcuts, and quick start."
+    />
+    <title>yk-player — modern HLS player web component</title>
     <link rel="stylesheet" href="./src/index.css" />
     <script type="module" src="/src/demo.ts"></script>
   </head>
   <body>
-    <div class="demo-wrap">
-      <yk-player class="demo" src="/pv1.m3u8" autoplay></yk-player>
-      <div class="switcher">
-        <button data-src="/pv1.m3u8" class="active">PV1</button>
-        <button data-src="/pv2/index.m3u8">PV2</button>
-      </div>
-      <div class="switcher">
-        <button data-lang="en" class="active">EN</button>
-        <button data-lang="ja">日本語</button>
-        <button data-lang="zh">中文</button>
-      </div>
+    <div class="page">
+      <header class="site-header">
+        <a class="brand" href="#">
+          <img class="brand-logo" src="/favicon.svg" alt="" width="24" height="24" />
+          <span>yk-player</span>
+        </a>
+        <nav class="site-nav">
+          <a href="https://github.com/biliblitz/yk-player" target="_blank" rel="noreferrer">GitHub</a>
+          <a href="https://www.npmjs.com/package/@biliblitz/yk-player" target="_blank" rel="noreferrer">npm</a>
+        </nav>
+      </header>
+
+      <main>
+        <section class="hero">
+          <h1>A modern HLS player,<br />wrapped in a <code>&lt;custom-element&gt;</code></h1>
+          <p class="tagline">
+            Built on <a href="https://lit.dev" target="_blank" rel="noreferrer">Lit</a> and
+            <a href="https://github.com/video-dev/hls.js" target="_blank" rel="noreferrer">hls.js</a> — drop it into
+            any framework, or none at all.
+          </p>
+        </section>
+
+        <section class="demo-wrap">
+          <yk-player class="demo" src="/bigbunny/index.m3u8" autoplay></yk-player>
+
+          <div class="controls-row">
+            <div class="switcher">
+              <span class="switcher-label">Source</span>
+              <button data-src="/bigbunny/index.m3u8" class="active">Big Buck Bunny</button>
+            </div>
+            <div class="switcher">
+              <span class="switcher-label">Language</span>
+              <button data-lang="en" class="active">EN</button>
+              <button data-lang="ja">日本語</button>
+              <button data-lang="zh">中文</button>
+            </div>
+          </div>
+        </section>
+
+        <section class="features">
+          <div class="feature">
+            <span class="feature-icon">🎛️</span>
+            <h3>Full controller</h3>
+            <p>Play/pause, seek, volume, speed, fullscreen and auto-hiding controls — out of the box.</p>
+          </div>
+          <div class="feature">
+            <span class="feature-icon">💬</span>
+            <h3>Subtitles</h3>
+            <p>WebVTT tracks declared in the HLS manifest, switchable right from the menu.</p>
+          </div>
+          <div class="feature">
+            <span class="feature-icon">🎚️</span>
+            <h3>Bitrate switching</h3>
+            <p>Pick a quality level manually, or let hls.js adapt automatically.</p>
+          </div>
+          <div class="feature">
+            <span class="feature-icon">📺</span>
+            <h3>Native fallback</h3>
+            <p>Falls back to native HLS on Safari, where hls.js isn't needed.</p>
+          </div>
+          <div class="feature">
+            <span class="feature-icon">🌏</span>
+            <h3>Built-in i18n</h3>
+            <p>English, 日本語 and 中文 ship in the box — switch with a single attribute.</p>
+          </div>
+          <div class="feature">
+            <span class="feature-icon">📦</span>
+            <h3>Just a custom element</h3>
+            <p>No framework required. Works anywhere a <code>&lt;video&gt;</code> would.</p>
+          </div>
+        </section>
+
+        <section class="install">
+          <h2>Quick start</h2>
+          <pre><code>npm install @biliblitz/yk-player hls.js lit</code></pre>
+          <pre><code>import "@biliblitz/yk-player";</code></pre>
+          <pre><code>&lt;yk-player src="/videos/index.m3u8" autoplay&gt;&lt;/yk-player&gt;</code></pre>
+        </section>
+
+        <section class="shortcuts">
+          <h2>Keyboard shortcuts</h2>
+          <p class="shortcuts-hint">Click the player once to focus it, then:</p>
+          <table>
+            <tbody>
+              <tr>
+                <td><kbd>Space</kbd> / <kbd>k</kbd></td>
+                <td>Play / pause</td>
+              </tr>
+              <tr>
+                <td><kbd>f</kbd> (or double-click)</td>
+                <td>Toggle fullscreen</td>
+              </tr>
+              <tr>
+                <td><kbd>m</kbd></td>
+                <td>Toggle mute</td>
+              </tr>
+              <tr>
+                <td><kbd>c</kbd></td>
+                <td>Toggle subtitles</td>
+              </tr>
+              <tr>
+                <td><kbd>←</kbd> / <kbd>→</kbd></td>
+                <td>Seek −5s / +5s</td>
+              </tr>
+              <tr>
+                <td><kbd>j</kbd> / <kbd>l</kbd></td>
+                <td>Seek −10s / +10s</td>
+              </tr>
+              <tr>
+                <td><kbd>↑</kbd> / <kbd>↓</kbd></td>
+                <td>Volume up / down</td>
+              </tr>
+              <tr>
+                <td><kbd>0</kbd>–<kbd>9</kbd></td>
+                <td>Jump to 0%–90%</td>
+              </tr>
+              <tr>
+                <td><kbd>Esc</kbd></td>
+                <td>Close the settings menu</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+      </main>
+
+      <footer class="site-footer">
+        <p>
+          <a href="https://github.com/biliblitz/yk-player" target="_blank" rel="noreferrer"
+            >biliblitz/yk-player</a
+          >
+          — built with <a href="https://lit.dev" target="_blank" rel="noreferrer">Lit</a> &amp;
+          <a href="https://github.com/video-dev/hls.js" target="_blank" rel="noreferrer">hls.js</a>.
+        </p>
+      </footer>
     </div>
   </body>
 </html>
