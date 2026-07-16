@@ -423,7 +423,7 @@ export class YkPlayer extends LitElement {
                               ${this.t("auto")}${this.currentLevel === -1 &&
                               this.activeLevel !== -1
                                 ? html`<span class="hint">
-                                    (${qualityLabel(
+                                    &nbsp;(${qualityLabel(
                                       this.levels[this.activeLevel],
                                       this.t("auto"),
                                     )})</span
